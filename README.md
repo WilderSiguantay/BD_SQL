@@ -39,3 +39,12 @@ temporada, con fechas y puntos.
 - Realizar un stored procedure que la temporada (id o año) y que devuelva el historial 
 de los equipos que han ocupado el último puesto de la liga de inicio a fin de 
 temporada, con fechas y puntos.
+- Vista que muestre, cuántos goles se anotaron en cada temporada, que equipo anoto 
+más, que equipo anoto menos.
+- Consulta que muestre, al quipo con más victorias, más derrotas y más empates. 
+- Un grupo de stored procedures que efectué una simulación con la pueda calcular 
+nuevamente los datos de todas las consultas anteriores. Debe ser capaz de modificar 
+resultados, ingresando los parámetros de año, jornada, resultado de visita y local. Y 
+un stored procedure que al ejecutarlo retorne todo a su estado original como si no 
+hubiera hecho ningún cambio por medio de la simulación. 
+- El tiempo de ejecución de cada consulta no debe exceder 1 minuto.
