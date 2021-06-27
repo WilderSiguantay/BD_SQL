@@ -1,12 +1,13 @@
-# BD_SQL
- Proyecto BD2 USAC
+# Base de Datos SQL.
+ 
 
-## Enunciado
-Se ha solicitado cargar la información relacionada a la Liga Española de Futbol, para la primera 
+_Se ha solicitado cargar la información relacionada a la Liga Española de Futbol, para la primera 
 división, del sitio https://www.bdfutbol.com descargar la información con el método que sea 
 de su conveniencia https://www.bdfutbol.com/en/t/t.html, desde la temporada 1979-80 (Spain -
 First Division), utilizar esta data para crear un modelo relacional que represente la información de la 
-Liga. 
+Liga._
+
+### Pre-requisitos 📋
 
 ### Se solicita
  - Diagrama Entidad Relación del modelo usado para la carga de datos
@@ -48,3 +49,12 @@ resultados, ingresando los parámetros de año, jornada, resultado de visita y l
 un stored procedure que al ejecutarlo retorne todo a su estado original como si no 
 hubiera hecho ningún cambio por medio de la simulación. 
 - El tiempo de ejecución de cada consulta no debe exceder 1 minuto.
+
+
+## Como última fase
+
+- Backup y restauración de la base de datos total, hecha por script, tener la habilidad 
+de hacerlo en cualquier momento y cualquier forma.
+- Truncar la bitácora de transacciones del DBMS, hecho por script
+- Mostrar el nivel de fragmentación, paginación, collation de todas las tablas y sus 
+columnas en la base de datos.
