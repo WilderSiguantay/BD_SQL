@@ -1,0 +1,901 @@
+
+--------------------------------------------------------
+-------------consulta 1---------------------------------
+--------------------------------------------------------
+CREATE OR REPLACE PROCEDURE POR_JORNADA(CURSORMEMORIA out SYS_REFCURSOR, ANIO IN TEMPORADA.AÑO_INICIO%TYPE, NUMEROJORNADA  IN JORNADA.NO_JORNADA%TYPE)
+AS
+
+
+BEGIN
+DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+DBMS_OUTPUT.PUT_LINE('Tabla del año ' || ANIO || ' hasta la Jornada No: ' || NUMEROJORNADA);
+DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+open CURSORMEMORIA for SELECT 
+ROW_NUMBER() OVER (ORDER BY PTS DESC, DG DESC) as posicion,
+EQUIPO, 
+PARTIDOS,
+GANADOS,
+EMPATES,
+PERDIDOS,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN GF-3
+ELSE
+GF
+END) GF,
+GC,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN (GF-3) -(GC)
+ELSE
+GF-GC
+END) DG,
+(CASE WHEN EQUIPO='CD Málaga' AND TMP = '1979' THEN PTS-3 
+WHEN EQUIPO='AD Almería' AND TMP = '1979' THEN PTS+2
+ELSE PTS END) PTS
+FROM
+(
+SELECT e.nombre_equipo EQUIPO, 
+COUNT(*) PARTIDOS, 
+COUNT( CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN 1 END) GANADOS,
+COUNT( CASE WHEN GOLES_VISITA > GOLES_LOCAL THEN 1 END) PERDIDOS,
+COUNT( CASE WHEN GOLES_LOCAL = GOLES_VISITA THEN 1 END) EMPATES,
+SUM(GOLES_LOCAL) GF,
+SUM(GOLES_VISITA) GC,
+(SUM(GOLES_LOCAL)-SUM(GOLES_VISITA)) DG,
+(SUM(PUNTOS_LOCAL)) PTS,
+t."AÑO_INICIO" TMP
+FROM 
+(SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2"
+ 
+)A , JORNADA J, EQUIPO E, TEMPORADA T 
+WHERE A.JORNADA = j.id_jornada
+AND j.temporada_id_temporada = t.id_temporada
+AND e.id_equipo = A."TEAM"
+AND t.AÑO_INICIO = ANIO
+and j.no_jornada <= NUMEROJORNADA --JORNADA PUEDE SER CUALQUIERA
+group by e.nombre_equipo, t."AÑO_INICIO"   
+)
+ORDER BY PTS DESC, DG DESC;
+END;
+
+
+
+SET AUTOPRINT ON;
+variable CURSORMEMORIA  REFCURSOR;
+execute por_jornada(:CURSORMEMORIA, 1995, 38);
+
+-------------------------------------------------
+----------------POR FECHA------------------------
+-------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE POR_FECHA(CURSORMEMORIA out SYS_REFCURSOR, ANIO IN TEMPORADA.AÑO_INICIO%TYPE, FECHASOLICITADA  IN PARTIDO.FECHA%TYPE)
+AS
+
+
+BEGIN
+DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+DBMS_OUTPUT.PUT_LINE('Tabla del año ' || ANIO || ' hasta la Fecha: ' || FECHASOLICITADA);
+DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+open CURSORMEMORIA for SELECT 
+ROW_NUMBER() OVER (ORDER BY PTS DESC, DG DESC) as posicion,
+EQUIPO, 
+PARTIDOS,
+GANADOS,
+EMPATES,
+PERDIDOS,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN GF-3
+ELSE
+GF
+END) GF,
+GC,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN (GF-3) -(GC)
+ELSE
+GF-GC
+END) DG,
+(CASE WHEN EQUIPO='CD Málaga' AND TMP = '1979' THEN PTS-3 
+WHEN EQUIPO='AD Almería' AND TMP = '1979' THEN PTS+2
+ELSE PTS END) PTS
+FROM
+(
+SELECT e.nombre_equipo EQUIPO, 
+COUNT(*) PARTIDOS, 
+COUNT( CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN 1 END) GANADOS,
+COUNT( CASE WHEN GOLES_VISITA > GOLES_LOCAL THEN 1 END) PERDIDOS,
+COUNT( CASE WHEN GOLES_LOCAL = GOLES_VISITA THEN 1 END) EMPATES,
+SUM(GOLES_LOCAL) GF,
+SUM(GOLES_VISITA) GC,
+(SUM(GOLES_LOCAL)-SUM(GOLES_VISITA)) DG,
+(SUM(PUNTOS_LOCAL)) PTS,
+t."AÑO_INICIO" TMP
+FROM 
+(SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2"
+ 
+)A , JORNADA J, EQUIPO E, TEMPORADA T 
+WHERE A.JORNADA = j.id_jornada
+AND j.temporada_id_temporada = t.id_temporada
+AND e.id_equipo = A."TEAM"
+AND t.AÑO_INICIO = ANIO
+AND A.FECHA <= FECHASOLICITADA --FECHA PUEDE SER CUALQUIERA
+group by e.nombre_equipo, t."AÑO_INICIO"   
+)
+ORDER BY PTS DESC, DG DESC;
+END;
+
+
+
+SET AUTOPRINT ON;
+variable CURSORMEMORIA  REFCURSOR;
+execute POR_FECHA(:CURSORMEMORIA, 1995, '27/10/2019');
+------------------------------------------------------------------------
+------------------PROCEDIMIENTO DE ALMACENADO 1-------------------------
+------------------------------------------------------------------------
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA1(CURSORMEMORIA out SYS_REFCURSOR, ANIO IN TEMPORADA.AÑO_INICIO%TYPE, 
+NUMEROJORNADA  IN JORNADA.NO_JORNADA%TYPE,
+FECHASOLICITADA  IN PARTIDO.FECHA%TYPE) 
+IS
+BEGIN
+  IF numerojornada = 0 THEN 
+    POR_FECHA(CURSORMEMORIA, ANIO, FECHASOLICITADA);
+  ELSE  
+    POR_JORNADA(CURSORMEMORIA, ANIO, NUMEROJORNADA);
+  END IF; 
+END;
+/
+
+
+--POR FECHA //LA JORNADA TIENE QUE IR 0
+SET AUTOPRINT ON;
+variable CURSORMEMORIA  REFCURSOR;
+execute CONSULTA1(:CURSORMEMORIA, 2019,0 ,'27/10/2019');
+
+--POR JORNADA
+SET AUTOPRINT ON;
+variable CURSORMEMORIA  REFCURSOR;
+execute CONSULTA1(:CURSORMEMORIA, 2019,10 ,'');
+
+
+-----------------------------
+------CONSULTA 2-------------
+-----------------------------
+
+
+SELECT 
+ROW_NUMBER() OVER (PARTITION BY TMP ORDER BY  PTS DESC, DG DESC) as POSICION,
+EQUIPO, 
+PARTIDOS,
+GANADOS,
+EMPATES,
+PERDIDOS,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN GF-3
+ELSE
+GF
+END) GF,
+GC,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN (GF-3) -(GC)
+ELSE
+GF-GC
+END) DG,
+(CASE WHEN EQUIPO='CD Málaga' AND TMP = '1979' THEN PTS-3 
+WHEN EQUIPO='AD Almería' AND TMP = '1979' THEN PTS+2
+ELSE PTS END) PTS,
+TMP ANIO
+FROM
+(
+SELECT 
+e.nombre_equipo EQUIPO, 
+COUNT(*) PARTIDOS, 
+COUNT( CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN 1 END) GANADOS,
+COUNT( CASE WHEN GOLES_VISITA > GOLES_LOCAL THEN 1 END) PERDIDOS,
+COUNT( CASE WHEN GOLES_LOCAL = GOLES_VISITA THEN 1 END) EMPATES,
+SUM(GOLES_LOCAL) GF,
+SUM(GOLES_VISITA) GC,
+(SUM(GOLES_LOCAL)-SUM(GOLES_VISITA)) DG,
+(SUM(CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN PUNTOS_LOCAL END) +  SUM(CASE WHEN GOLES_LOCAL < GOLES_VISITA  THEN PUNTOS_LOCAL END) 
++ SUM(CASE WHEN GOLES_LOCAL = GOLES_VISITA  THEN PUNTOS_LOCAL END) ) PTS,
+t."AÑO_INICIO" TMP
+FROM 
+( SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2"
+)A , JORNADA J, EQUIPO E, TEMPORADA T 
+WHERE A.JORNADA = j.id_jornada
+AND j.temporada_id_temporada = t.id_temporada
+AND e.id_equipo = A."TEAM"
+group by e.nombre_equipo, t."AÑO_INICIO"
+ORDER BY PTS DESC, DG DESC
+)
+ORDER BY TMP ASC;
+
+
+
+
+-----------VISTAS TABLAS DE POSICIONES POR AñO
+
+
+CREATE VIEW TABLAS_POSICIONES 
+ AS 
+SELECT 
+ROW_NUMBER() OVER (PARTITION BY TMP ORDER BY  PTS DESC, DG DESC) as POSICION,
+EQUIPO, 
+PARTIDOS,
+GANADOS,
+EMPATES,
+PERDIDOS,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN GF-3
+ELSE
+GF
+END) GF,
+GC,
+(CASE WHEN EQUIPO='Salamanca' AND TMP= '1979' THEN (GF-3) -(GC)
+ELSE
+GF-GC
+END) DG,
+(CASE WHEN EQUIPO='CD Málaga' AND TMP = '1979' THEN PTS-3 
+WHEN EQUIPO='AD Almería' AND TMP = '1979' THEN PTS+2
+ELSE PTS END) PTS,
+TMP ANIO
+FROM
+(
+SELECT 
+e.nombre_equipo EQUIPO, 
+COUNT(*) PARTIDOS, 
+COUNT( CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN 1 END) GANADOS,
+COUNT( CASE WHEN GOLES_VISITA > GOLES_LOCAL THEN 1 END) PERDIDOS,
+COUNT( CASE WHEN GOLES_LOCAL = GOLES_VISITA THEN 1 END) EMPATES,
+SUM(GOLES_LOCAL) GF,
+SUM(GOLES_VISITA) GC,
+(SUM(GOLES_LOCAL)-SUM(GOLES_VISITA)) DG,
+(SUM(CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN PUNTOS_LOCAL END) +  SUM(CASE WHEN GOLES_LOCAL < GOLES_VISITA  THEN PUNTOS_LOCAL END) 
++ SUM(CASE WHEN GOLES_LOCAL = GOLES_VISITA  THEN PUNTOS_LOCAL END) ) PTS,
+t."AÑO_INICIO" TMP
+FROM 
+( SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2"
+)A , JORNADA J, EQUIPO E, TEMPORADA T 
+WHERE A.JORNADA = j.id_jornada
+AND j.temporada_id_temporada = t.id_temporada
+AND e.id_equipo = A."TEAM"
+group by e.nombre_equipo, t."AÑO_INICIO"
+ORDER BY PTS DESC, DG DESC
+)
+ORDER BY TMP ASC;
+
+
+
+
+
+CREATE VIEW CONSULTA2 
+AS
+SELECT LISTAGG(T2.POSICION ||'. ' || T2.EQUIPO  || ' PTS: ' || T2.PTS  || '|') WITHIN GROUP (ORDER BY t2.pts DESC) "PRIMEROS 4 LUGARES POR TEMPORADA", T1.ANIO 
+FROM tablas_posiciones T1, TABLAS_POSICIONES T2
+WHERE T1.POSICION <5
+AND T1.ANIO > 1979
+AND T1.POSICION = T2.POSICION
+AND T1.EQUIPO = T2.EQUIPO
+AND T1.PTS = T2.PTS
+AND T1.ANIO = T2.ANIO group by T1.ANIO;
+
+SELECT * FROM CONSULTA2;
+
+
+----------CONSULTA 3------------------
+
+CREATE VIEW CONSULTA3
+AS
+SELECT  COUNT(EQUIPO) VECES, EQUIPO FROM tablas_posiciones
+WHERE POSICION <2 group by EQUIPO
+ORDER BY VECES DESC;
+
+SELECT * FROM CONSULTA3;
+
+
+------CONSULTA 4---------------------
+--Realizar una stored procedure que muestre que equipos descendieron y no
+--aparecen en la temporada que se envíe por parámetro\
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA_4(CURSORMEMORIA out SYS_REFCURSOR, ANIO_CONSULTA IN NUMBER) 
+IS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('EQUIPO QUE NO ESTAN EN LA TEMPORADA: ' || anio_consulta || '-'|| (ANIO_CONSULTA+1));
+    DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+    open CURSORMEMORIA for SELECT EQUIPO FROM tablas_posiciones WHERE ANIO = (ANIO_CONSULTA-1)
+    MINUS
+    SELECT EQUIPO FROM tablas_posiciones WHERE ANIO = ANIO_CONSULTA;
+END;
+/
+
+SET AUTOPRINT ON;
+SET serveroutput ON
+variable CURSORMEMORIA  REFCURSOR;
+execute CONSULTA_4(:CURSORMEMORIA, 2019);
+
+
+-----------------CONSULTA 5 ----------------------
+--Realizar una vista que devuelva las victimas favoritas de un equipo, en otras
+--palabras, a quien han derrotado más veces. 
+
+CREATE VIEW PARTIDOS_COMPLETOS
+AS
+SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."VISITANTE"       "VISITANTE",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."EQ_LOCAL"        "TEAM",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2";
+
+
+CREATE VIEW CONSULTA_5
+AS
+SELECT e1.nombre_equipo EQUIPO, COUNT(P.TEAM) VICTORIAS, e2.nombre_equipo RIVAL
+FROM partidos_completos P, EQUIPO E1, EQUIPO E2
+WHERE P.goles_local > P.goles_visita
+AND P.TEAM = e1.id_equipo
+AND P.VISITANTE = e2.id_equipo
+group by  e1.nombre_equipo, e2.nombre_equipo, P.TEAM
+ORDER BY TEAM ASC, VICTORIAS DESC ;
+
+SELECT * FROM CONSULTA_5;
+
+
+--------------------CONSULTA 6---------------------
+--Realizar un stored procedure que reciba el equipo (id o nombre) y que devuelva las
+--posiciones que ha ocupado en cada una de las temporadas, goles y puntos.
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA_6(CURSORMEMORIA out SYS_REFCURSOR, EQUIPO_A_CONSULTAR IN VARCHAR2) 
+IS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('MUESTRA QUE POSICION HA OCUPADO EL EQUIPO: '|| EQUIPO_A_CONSULTAR || ' EN CADA UNA DE LAS TEMPORADAS');
+    DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------------------');
+    open CURSORMEMORIA for SELECT POSICION, EQUIPO, GF, GC, PTS, ANIO FROM TABLAS_POSICIONES
+    WHERE EQUIPO = EQUIPO_A_CONSULTAR;
+END;
+/
+
+SET AUTOPRINT ON;
+SET serveroutput ON
+variable CURSORMEMORIA  REFCURSOR;
+execute CONSULTA_6(:CURSORMEMORIA, 'Barcelona');
+
+----------------------CONSULTA 7 --------------------------------
+--Responder ¿Cuál ha sido la victoria más abultada de los últimos 40 años? Partido,
+--equipos y marcador.
+
+CREATE VIEW CONSULTA_7
+AS
+SELECT A.LOCAL, A.VISITANTE, A.FECHA, A.GOLES_LOCAL, A.GOLES_VISITA
+FROM
+(
+SELECT P.id_partido PARTIDO, e.nombre_equipo LOCAL,e1.nombre_equipo VISITANTE,P.fecha FECHA, P.goles_local,P.goles_visita,SUM(P.GOLES_LOCAL - P.GOLES_VISITA) VICTORIA_LOCAL, SUM(P.GOLES_VISITA - P.GOLES_LOCAL) VICTORIA_VISITA 
+FROM PARTIDO P , EQUIPO E, EQUIPO E1
+WHERE p.eq_local = e.id_equipo
+AND p.visitante = e1.id_equipo
+group by P.id_partido,  P.fecha, P.goles_local, 
+P.goles_visita, e.nombre_equipo, e1.nombre_equipo 
+ORDER BY VICTORIA_LOCAL DESC, p.goles_local DESC) A
+WHERE ROWNUM < 2
+UNION
+SELECT A.LOCAL, A.VISITANTE, A.FECHA, A.GOLES_LOCAL, A.GOLES_VISITA 
+FROM
+(
+SELECT P.id_partido PARTIDO, e.nombre_equipo LOCAL,e1.nombre_equipo VISITANTE,P.fecha FECHA, P.goles_local,P.goles_visita,SUM(P.GOLES_LOCAL - P.GOLES_VISITA) VICTORIA_LOCAL, SUM(P.GOLES_VISITA - P.GOLES_LOCAL) VICTORIA_VISITA 
+FROM PARTIDO P , EQUIPO E, EQUIPO E1
+WHERE p.eq_local = e.id_equipo
+AND p.visitante = e1.id_equipo
+group by P.id_partido,  P.fecha, P.goles_local, 
+P.goles_visita, e.nombre_equipo, e1.nombre_equipo 
+ORDER BY VICTORIA_LOCAL ASC, p.goles_local DESC) A
+WHERE ROWNUM < 2;
+
+SELECT * FROM CONSULTA_7;
+
+
+---------------------CONSULTA 8 ----------------------------
+--Realizar un stored procedure que la temporada (id o año) y que devuelva el historial
+--de los equipos que han ocupado el primer puesto de la liga de inicio a fin de
+--temporada, con fechas y puntos. 
+
+
+CREATE VIEW POSICIONES_FECHA
+AS
+SELECT 
+e.nombre_equipo EQUIPO, 
+COUNT(*) PARTIDOS, 
+COUNT( CASE WHEN GOLES_LOCAL > GOLES_VISITA THEN 1 END) GANADOS,
+COUNT( CASE WHEN GOLES_VISITA > GOLES_LOCAL THEN 1 END) PERDIDOS,
+COUNT( CASE WHEN GOLES_LOCAL = GOLES_VISITA THEN 1 END) EMPATES,
+SUM(GOLES_LOCAL) GF,
+SUM(GOLES_VISITA) GC,
+(SUM(GOLES_LOCAL)-SUM(GOLES_VISITA)) DG,
+(SUM(PUNTOS_LOCAL)) PTS,
+t."AÑO_INICIO" TMP,
+j.no_jornada, 
+A.FECHA
+FROM 
+( SELECT
+    "A3"."EQ_LOCAL"        "TEAM",
+    "A3"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A3"."GOLES_VISITA"    "GOLES_VISITA",
+    "A3"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A3"."PTS_VISITANTE" "PUNTOS_VISITANTE", 
+    "A3"."FECHA" "FECHA",
+    "A3"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A3"
+UNION ALL
+ SELECT
+    "A2"."VISITANTE"       "VISITANTE",
+    "A2"."GOLES_VISITA"    "GOLES_VISITA",
+    "A2"."GOLES_LOCAL"     "GOLES_LOCAL",
+    "A2"."PTS_VISITANTE" "PUNTOS_VISITANTE",
+    "A2"."PTS_LOCAL" "PUNTOS_LOCAL",
+    "A2"."FECHA" "FECHA",
+    "A2"."JORNADA_ID_JORNADA" "JORNADA"
+FROM
+    "LALIGA"."PARTIDO" "A2"
+)A , JORNADA J, EQUIPO E, TEMPORADA T 
+WHERE A.JORNADA = j.id_jornada
+AND j.temporada_id_temporada = t.id_temporada
+AND e.id_equipo = A."TEAM"
+group by e.nombre_equipo, t."AÑO_INICIO", A.FECHA, j.no_jornada
+ORDER BY FECHA ASC, PTS DESC, DG DESC;
+
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA_8(TEMPORADA_INICIO IN TEMPORADA.AÑO_INICIO%TYPE)
+AS
+C NUMBER;
+JORNADA NUMBER;
+EQUIPO1 equipo.nombre_equipo%TYPE;
+TEMPORADA1 TEMPORADA."AÑO_INICIO"%TYPE;
+PUNTOS1 partido.pts_local%TYPE;
+DIFERENCIA_GOLES partido.pts_local%TYPE;
+BEGIN
+    dbms_output.put_line('--------------HISTORIAL PRIMER LUGAR POR JORNADA-----------------');
+    dbms_output.put_line('-------------- TEMPORADA ' || TEMPORADA_INICIO || '-------------');
+    JORNADA :=1;
+    SELECT MAX(NO_JORNADA) INTO C FROM JORNADA, TEMPORADA
+    WHERE jornada.temporada_id_temporada = temporada.id_temporada
+    AND TEMPORADA."AÑO_INICIO" = TEMPORADA_INICIO;
+    for f in 1..C loop
+        SELECT EQUIPO, TEMPORADA, PUNTOS, DG INTO EQUIPO1, TEMPORADA1, PUNTOS1, diferencia_goles
+        FROM(
+            SELECT EQUIPO, TMP TEMPORADA,(SUM(PTS)) PUNTOS, SUM(gf-gc) DG 
+            FROM posiciones_fecha
+            WHERE no_jornada BETWEEN 1 AND jornada
+            and tmp = TEMPORADA_INICIO 
+            group by EQUIPO, TMP
+            ORDER BY PUNTOS DESC, DG DESC)
+            WHERE ROWNUM = 1;
+            dbms_output.put_line('-------------- JORNADA ' || jornada || '-------------');
+            dbms_output.put_line(EQUIPO1 ||' '|| temporada1 ||' Puntos: '||puntos1); 
+            jornada := jornada +1;
+    end loop;--fin del for f
+END;
+/
+
+SET serveroutput ON
+execute CONSULTA_8(1979);
+
+
+------------------CONSULTA 9----------------------
+--Realizar un stored procedure que la temporada (id o año) y que devuelva el historial
+--de los equipos que han ocupado el último puesto de la liga de inicio a fin de
+--temporada, con fechas y puntos. 
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA_9(TEMPORADA_INICIO IN TEMPORADA.AÑO_INICIO%TYPE)
+AS
+C NUMBER;
+JORNADA NUMBER;
+EQUIPO1 equipo.nombre_equipo%TYPE;
+TEMPORADA1 TEMPORADA."AÑO_INICIO"%TYPE;
+PUNTOS1 partido.pts_local%TYPE;
+DIFERENCIA_GOLES partido.pts_local%TYPE;
+BEGIN
+    dbms_output.put_line('--------------HISTORIAL ULTIMO LUGAR POR JORNADA-----------------');
+    dbms_output.put_line('-------------- TEMPORADA ' || TEMPORADA_INICIO || '-------------');
+    JORNADA :=1;
+    SELECT MAX(NO_JORNADA) INTO C FROM JORNADA, TEMPORADA
+    WHERE jornada.temporada_id_temporada = temporada.id_temporada
+    AND TEMPORADA."AÑO_INICIO" = TEMPORADA_INICIO;
+    for f in 1..C loop
+        SELECT EQUIPO, TEMPORADA, PUNTOS, DG INTO EQUIPO1, TEMPORADA1, PUNTOS1, diferencia_goles
+        FROM(
+            SELECT EQUIPO, TMP TEMPORADA,(SUM(PTS)) PUNTOS, SUM(gf-gc) DG 
+            FROM posiciones_fecha
+            WHERE no_jornada BETWEEN 1 AND jornada
+            and tmp = TEMPORADA_INICIO 
+            group by EQUIPO, TMP
+            ORDER BY PUNTOS ASC, DG ASC)
+            WHERE ROWNUM = 1;
+            dbms_output.put_line('-------------- JORNADA ' || jornada || '-------------');
+            dbms_output.put_line(EQUIPO1 ||' '|| temporada1 ||' Puntos: '||puntos1); 
+            jornada := jornada +1;
+    end loop;--fin del for f
+END;
+/
+
+SET serveroutput ON
+execute CONSULTA_9(1979);
+
+----------CONSULTA 10----------------
+--Vista que muestre, cuántos goles se anotaron en cada temporada, que equipo anoto
+--más, que equipo anoto menos.
+
+SELECT * FROM TABLAS_POSICIONES;
+
+SELECT  SUM(GF) TOTAL_GOLES, ANIO FROM TABLAS_POSICIONES group by ANIO;
+
+
+
+
+
+CREATE VIEW MEJOR_PEOR
+AS
+SELECT * 
+FROM
+(
+SELECT
+ROW_NUMBER() OVER (PARTITION BY ANIO ORDER BY ANIO ASC, TOTAL_GOLES DESC) as POSICION,
+EQUIPO,
+TOTAL_GOLES,
+ANIO
+FROM(
+SELECT EQUIPO, SUM(GF) TOTAL_GOLES, ANIO 
+FROM TABLAS_POSICIONES 
+group by ANIO, EQUIPO
+ORDER BY ANIO ASC, TOTAL_GOLES DESC
+)
+)
+WHERE POSICION = 1
+UNION
+SELECT * 
+FROM
+(
+SELECT
+ROW_NUMBER() OVER (PARTITION BY ANIO ORDER BY ANIO ASC, TOTAL_GOLES ASC) as POSICION,
+EQUIPO,
+TOTAL_GOLES,
+ANIO
+FROM(
+SELECT EQUIPO, SUM(GF) TOTAL_GOLES, ANIO 
+FROM TABLAS_POSICIONES 
+group by ANIO, EQUIPO
+ORDER BY ANIO ASC, TOTAL_GOLES ASC
+)
+)
+WHERE POSICION = 1;
+
+
+SELECT  SUM(TP.GF) TOTAL_GOLES, TP.ANIO ,
+LISTAGG(A.EQUIPO ||'  ' || A.TOTAL_GOLES ||' || ' ) WITHIN GROUP (ORDER BY A.TOTAL_GOLES DESC) "MEJOR Y PEOR"
+FROM TABLAS_POSICIONES TP, (SELECT * FROM mejor_peor MP
+ORDER BY MP.ANIO, MP.total_goles DESC) A 
+WHERE TP.ANIO = A.ANIO
+group by TP.ANIO;
+
+SELECT * 
+FROM (SELECT SUM(TP.GF)TOTAL_GOLES, TP.ANIO
+FROM TABLAS_POSICIONES TP
+GROUP BY TP.ANIO) TP, 
+(SELECT * FROM mejor_peor MP
+ORDER BY MP.ANIO, MP.total_goles DESC) EQ;
+
+--CREAR VISTA PARA CONSULTA
+CREATE VIEW CONSULTA_10
+AS
+SELECT  
+TP.TOTAL_GOLES, TP.ANIO ,
+LISTAGG(EQ.EQUIPO ||'  ' || EQ.TOTAL_GOLES ||' || ' ) WITHIN GROUP (ORDER BY EQ.TOTAL_GOLES DESC) "MEJOR Y PEOR"
+FROM (SELECT SUM(TP.GF)TOTAL_GOLES, TP.ANIO
+FROM TABLAS_POSICIONES TP
+GROUP BY TP.ANIO) TP, 
+(SELECT * FROM mejor_peor MP
+ORDER BY MP.ANIO, MP.total_goles DESC) EQ
+WHERE TP.ANIO = EQ.ANIO 
+group by TP.TOTAL_GOLES, TP.ANIO
+ORDER BY TP.ANIO;
+
+SELECT * FROM CONSULTA_10;
+
+-------------------------CONSULTA 11--------------------------
+--Consulta que muestre, al equipo con más victorias, más derrotas y más empates. 
+
+CREATE VIEW CONSULTA_11
+AS
+SELECT *
+FROM(
+SELECT e.nombre_equipo, a.ganados, a.empatados, a.perdidos
+FROM(
+SELECT
+TEAM,
+SUM( CASE WHEN PUNTOS_LOCAL >=2 THEN 1 END)GANADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =1 THEN 1 END)EMPATADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =0 THEN 1 END)PERDIDOS
+FROM PARTIDOS_COMPLETOS 
+group by TEAM
+) A, EQUIPO E
+WHERE e.id_equipo = a.team
+ORDER BY  GANADOS DESC
+) WHERE ROWNUM = 1
+UNION
+SELECT *
+FROM(
+SELECT e.nombre_equipo, a.ganados, a.empatados, a.perdidos
+FROM(
+SELECT
+TEAM,
+SUM( CASE WHEN PUNTOS_LOCAL >=2 THEN 1 END)GANADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =1 THEN 1 END)EMPATADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =0 THEN 1 END)PERDIDOS
+FROM PARTIDOS_COMPLETOS 
+group by TEAM
+) A, EQUIPO E
+WHERE e.id_equipo = a.team
+ORDER BY  EMPATADOS DESC
+) WHERE ROWNUM = 1
+UNION
+SELECT *
+FROM(
+SELECT e.nombre_equipo, a.ganados, a.empatados, a.perdidos
+FROM(
+SELECT
+TEAM,
+SUM( CASE WHEN PUNTOS_LOCAL >=2 THEN 1 END)GANADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =1 THEN 1 END)EMPATADOS,
+SUM( CASE WHEN PUNTOS_LOCAL =0 THEN 1 END)PERDIDOS
+FROM PARTIDOS_COMPLETOS 
+group by TEAM
+) A, EQUIPO E
+WHERE e.id_equipo = a.team
+ORDER BY  PERDIDOS DESC
+) WHERE ROWNUM = 1;
+
+SELECT * FROM CONSULTA_11 ORDER BY GANADOS DESC;
+
+--------------------CONSULTA 12----------------
+--Un grupo de stored procedures que efectué una simulación con la pueda calcular
+--nuevamente los datos de todas las consultas anteriores. Debe ser capaz de modificar
+--resultados, ingresando los parámetros de año, jornada, resultado de visita y local. Y
+--un stored procedure que al ejecutarlo retorne todo a su estado original como si no
+--hubiera hecho ningún cambio por medio de la simulación. 
+
+CREATE TABLE TEMPORAL_BACKUP(
+    id_partido           INTEGER,
+    goles_local          INTEGER,
+    goles_visita         INTEGER,
+    pts_local            INTEGER,
+    pts_visitante        INTEGER,
+    eq_local             INTEGER,
+    visitante            INTEGER,
+    fecha                DATE,
+    jornada_id_jornada   INTEGER
+);
+
+CREATE OR REPLACE PROCEDURE BACKUP_TABLA
+IS
+BEGIN
+  INSERT INTO TEMPORAL_BACKUP(id_partido, goles_local, goles_visita, pts_local, pts_visitante,
+  eq_local,visitante, fecha,jornada_id_jornada) SELECT * FROM PARTIDO;
+END;
+/
+--CREAR BACKUP DE ORIGINAL
+EXEC BACKUP_TABLA;
+
+
+CREATE OR REPLACE PROCEDURE CONSULTA_12(
+ANIO_SOLICITADO TEMPORADA.AÑO_INICIO%TYPE, 
+JORNADA_SOLICITADA JORNADA.id_jornada%TYPE, 
+NOMBRE_LOCAL EQUIPO.nombre_equipo%TYPE, 
+GOLESDELLOCAL PARTIDO.goles_local%TYPE, 
+NOMBRE_VISITA EQUIPO.nombre_equipo%TYPE, 
+GOLESDELVISITA PARTIDO.goles_visita%TYPE
+)
+AS
+JORNADA_ID JORNADA.id_jornada%TYPE;
+ID_LOCAL PARTIDO.eq_local%TYPE;
+ID_VISITANTE PARTIDO.visitante%TYPE;
+PARTIDO_MOD PARTIDO.ID_PARTIDO%TYPE;
+NW_PTS_LOCAL PARTIDO.PTS_LOCAL%TYPE;
+NW_PTS_VISITANTE PARTIDO.PTS_VISITANTE%TYPE;
+PTS_TEMPORADA TEMPORADA.PTS_GANADOR%TYPE; 
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(ANIO_SOLICITADO || ' ' || JORNADA_SOLICITADA || ' ' || NOMBRE_LOCAL || ' ' ||
+  GOLESDELLOCAL || ' ' || NOMBRE_VISITA || ' ' || GOLESDELVISITA );
+
+  SELECT J.ID_JORNADA INTO JORNADA_ID FROM JORNADA J, TEMPORADA T
+  WHERE J.temporada_id_temporada = T.id_temporada
+  AND  T.AÑO_INICIO = ANIO_SOLICITADO
+  AND J.NO_JORNADA = JORNADA_SOLICITADA;
+  DBMS_OUTPUT.PUT_LINE('ID DE JORNADA SOLICITADA: ' || JORNADA_ID);
+
+  SELECT E.ID_EQUIPO INTO ID_LOCAL FROM EQUIPO E
+  WHERE E.NOMBRE_EQUIPO = NOMBRE_LOCAL;
+  SELECT E.ID_EQUIPO INTO ID_VISITANTE FROM EQUIPO E
+  WHERE E.NOMBRE_EQUIPO = NOMBRE_VISITA;
+  DBMS_OUTPUT.PUT_LINE('LOCAL: ' || ID_LOCAL ||' VISITANTE: '|| ID_VISITANTE);
+  
+  SELECT P.ID_PARTIDO INTO PARTIDO_MOD FROM PARTIDO P
+  WHERE P.JORNADA_ID_JORNADA = JORNADA_ID
+  AND P.EQ_LOCAL = ID_LOCAL
+  AND P.VISITANTE = ID_VISITANTE;
+  DBMS_OUTPUT.PUT_LINE('-------------------------');
+  DBMS_OUTPUT.PUT_LINE('PARTIDO: ' || PARTIDO_MOD);
+  DBMS_OUTPUT.PUT_LINE('-------------------------');
+  
+  SELECT T.PTS_GANADOR INTO PTS_TEMPORADA FROM TEMPORADA T WHERE T.AÑO_INICIO = ANIO_SOLICITADO;
+
+  DBMS_OUTPUT.PUT_LINE('-------------------------');
+  DBMS_OUTPUT.PUT_LINE('PUNTOS TEMPORADA: ' || PTS_TEMPORADA);
+  DBMS_OUTPUT.PUT_LINE('-------------------------');
+
+  IF(GOLESDELLOCAL>GOLESDELVISITA) THEN
+    NW_PTS_LOCAL := PTS_TEMPORADA;
+    NW_PTS_VISITANTE := 0;
+  ELSIF (GOLESDELLOCAL = GOLESDELVISITA) THEN
+    NW_PTS_LOCAL := 1;
+    NW_PTS_VISITANTE := 1;
+  ELSE
+    NW_PTS_LOCAL := 0;
+    NW_PTS_VISITANTE := PTS_TEMPORADA;
+  END IF;
+ 
+    DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('PUNTOS LOCAL: ' || NW_PTS_LOCAL || ' PUNTOS VISITANTE: ' || NW_PTS_VISITANTE);
+    DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+    
+    UPDATE PARTIDO set goles_local=GOLESDELLOCAL, goles_visita=GOLESDELVISITA, pts_local = NW_PTS_LOCAL, 
+    pts_visitante = NW_PTS_VISITANTE
+    where ID_PARTIDO = PARTIDO_MOD ;
+
+END;
+/
+
+---MODIFICAR PARTIDO
+SET serveroutput ON
+EXEC consulta_12(2019,10,'Barcelona', 3, 'Real Madrid', 3);
+
+
+----CONSULTAR PARTIDO MODIFICADO
+
+SELECT * FROM PARTIDO
+WHERE PARTIDO.ID_PARTIDO = 71166;
+
+
+SET AUTOPRINT ON;
+variable CURSORMEMORIA  REFCURSOR;
+execute CONSULTA1(:CURSORMEMORIA, 2019,38 ,'');
+
+
+-----COMPARAR DATOS
+SELECT TEMPORAL_BACKUP.*, 'ELIMINADOS' estatus
+    FROM TEMPORAL_BACKUP
+    WHERE NOT EXISTS ( SELECT * FROM PARTIDO
+    WHERE
+    TEMPORAL_BACKUP.FECHA = PARTIDO.FECHA AND
+    TEMPORAL_BACKUP.EQ_LOCAL = PARTIDO.EQ_LOCAL AND
+    TEMPORAL_BACKUP.VISITANTE = PARTIDO.VISITANTE AND
+    TEMPORAL_BACKUP.GOLES_LOCAL = PARTIDO.GOLES_LOCAL AND
+    TEMPORAL_BACKUP.GOLES_VISITA = PARTIDO.GOLES_VISITA
+    )
+    
+SELECT PARTIDO.*, 'ELIMINADOS' estatus
+    FROM PARTIDO
+    WHERE NOT EXISTS ( SELECT * FROM TEMPORAL_BACKUP
+    WHERE
+    PARTIDO.FECHA = TEMPORAL_BACKUP.FECHA AND
+    PARTIDO.EQ_LOCAL = TEMPORAL_BACKUP.EQ_LOCAL AND
+    PARTIDO.VISITANTE = TEMPORAL_BACKUP.VISITANTE AND
+    PARTIDO.GOLES_LOCAL = TEMPORAL_BACKUP.GOLES_LOCAL AND
+    PARTIDO.GOLES_VISITA = TEMPORAL_BACKUP.GOLES_VISITA
+    )
+
+----RESTAURAR ORIGINAL
+CREATE OR REPLACE PROCEDURE RESTAURAR_ORIGINAL
+IS
+BEGIN
+  execute immediate 'TRUNCATE TABLE PARTIDO' ;
+  INSERT INTO PARTIDO(id_partido, goles_local, goles_visita, pts_local, pts_visitante,
+  eq_local,visitante, fecha,jornada_id_jornada) SELECT * FROM TEMPORAL_BACKUP;
+END;
+/
+
+EXEC RESTAURAR_ORIGINAL;

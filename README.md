@@ -8,6 +8,8 @@ First Division), utilizar esta data para crear un modelo relacional que represen
 Liga._
 
 ### Pre-requisitos 📋
+- _Base de datos Oracle_ 
+- _Versión Mínima: Oracle 11c_ 
 
 ### Se solicita
  - Diagrama Entidad Relación del modelo usado para la carga de datos
